@@ -52,9 +52,9 @@ app.post('/chat', async (req, res) => {
 const path = require('path');
 
 // ✅ Fix path for Render deployment
-app.use(express.static(path.join(__dirname, '../frontend')));
+app.use(express.static(path.resolve(__dirname, '../frontend')));
 app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, '../frontend', 'chatbot.html'));
+    res.sendFile(path.resolve(__dirname, '../frontend', 'chatbot.html'));
 });
 
 app.listen(PORT, () => {
