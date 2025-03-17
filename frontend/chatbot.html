@@ -752,13 +752,13 @@
     document.getElementById('userInput').value = '';
 
     try {
-      const response = await fetch('http://localhost:3000/chat', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ message: userInput })
-      });
+      const res = await fetch('https://minichatbot.onrender.com/chat', {
+    method: 'POST',
+    headers: {
+        'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ message })
+});
 
       const data = await response.json();
       chatBox.innerHTML += `<div>Bot: ${data.response}</div>`;
