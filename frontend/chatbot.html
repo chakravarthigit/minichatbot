@@ -590,15 +590,13 @@
         
         // Handle form submission
         const chatForm = document.getElementById('chat-form');
-        const sendButton = document.getElementById('send-button');
-        const chatContainer = document.getElementById('chat-container');
-        
-        // Add a throttle to prevent spamming
-        let isSending = false;
-        
-        // Generate a unique handler ID for each chat session
-        const handlerId = 'Qik-chat-' + Date.now();
-        chatForm.addEventListener('submit', async (e) => {
+const messageInput = document.getElementById('message-input');
+const sendButton = document.getElementById('send-button');
+const chatContainer = document.getElementById('chat-container');
+
+let isSending = false;
+
+chatForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     if (isSending) return;
 
@@ -622,40 +620,40 @@
     isSending = true;
     sendButton.disabled = true;
 
-    // Generate a message ID
+    // Generate a unique message ID
     const messageId = Date.now().toString();
 
     // Add typing indicator
     addTypingIndicator(messageId);
 
     try {
-        // Get selected model (if applicable)
-        const selectedModel = document.getElementById('selected-model-display')?.textContent;
-
-        // Send message to Node.js backend
+        // Send message to backend
         const res = await fetch('https://minichatbot.onrender.com/chat', {
-    method: 'POST',
-    headers: {
-        'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({ message })
-});
-
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ message }),
+        });
 
         if (!res.ok) {
             throw new Error(`HTTP error! Status: ${res.status}`);
         }
 
-        const data = await res.json(); // Expect JSON response
-        document.getElementById(`typing-${messageId}`)?.remove(); // ✅ Remove typing indicator
-         console.log(data.reply); // Log AI response
+        const data = await res.json();
+        console.log('Backend response:', data);
+
+        // Remove typing indicator
+        document.getElementById(`typing-${messageId}`)?.remove();
 
         // Add AI response to chat
         addMessage('AI', data.reply, false, messageId);
     } catch (error) {
-        console.error('Error:', error);
-        // Display an error message in the chat
-        addMessage('AI', `Error: ${error.message || 'An unexpected error occurred.'}`, false, messageId);
+        console.error('Error fetching chat response:', error.message);
+
+        // Remove typing indicator
+        document.getElementById(`typing-${messageId}`)?.remove();
+
+        // Display error message in chat
+        addMessage('AI', `Error: ${error.message}`, false, messageId);
     } finally {
         // Reset sending state
         isSending = false;
@@ -663,37 +661,58 @@
     }
 });
 
-        // Add a message to the chat
-        function addMessage(sender, content, isUser, messageId = Date.now().toString()) {
-            const messageElement = document.createElement('div');
-            messageElement.id = `message-${messageId}`;
-            messageElement.className = 'message-container animate__animated animate__fadeInUp animate__faster';
-            
-            if (isUser) {
-                messageElement.innerHTML = `
-                    <div class="flex justify-end">
-                        <div class="user-message rounded-t-2xl rounded-bl-2xl py-3 px-4 max-w-[85%] text-white">
-                            <div class="text-sm whitespace-pre-wrap">${content}</div>
-                        </div>
-                    </div>
-                `;
-            } else {
-                messageElement.innerHTML = `
-                    <div class="flex justify-start">
-                        <div class="ai-message rounded-t-2xl rounded-br-2xl py-3 px-4 max-w-[85%]">
-                            <div class="chat-message text-sm" id="message-content-${messageId}">${marked.parse(content)}</div>
-                        </div>
-                    </div>
-                `;
-            }
-            
-            chatContainer.appendChild(messageElement);
-            
-            // Scroll to bottom
-            if (document.getElementById('auto-scroll').checked) {
-                chatContainer.scrollTop = chatContainer.scrollHeight;
-            }
-        }
+function addMessage(sender, content, isUser, messageId = Date.now().toString()) {
+    const messageElement = document.createElement('div');
+    messageElement.id = `message-${messageId}`;
+    messageElement.className = 'message-container animate__animated animate__fadeInUp animate__faster';
+    if (isUser) {
+        messageElement.innerHTML = `
+            <div class="flex justify-end">
+                <div class="user-message rounded-t-2xl rounded-bl-2xl py-3 px-4 max-w-[85%] text-white">
+                    <div class="text-sm whitespace-pre-wrap">${content}</div>
+                </div>
+            </div>
+        `;
+    } else {
+        messageElement.innerHTML = `
+            <div class="flex justify-start">
+                <div class="ai-message rounded-t-2xl rounded-br-2xl py-3 px-4 max-w-[85%]">
+                    <div class="chat-message text-sm" id="message-content-${messageId}">${marked.parse(content)}</div>
+                </div>
+            </div>
+        `;
+    }
+    chatContainer.appendChild(messageElement);
+
+    // Scroll to bottom
+    if (document.getElementById('auto-scroll').checked) {
+        chatContainer.scrollTop = chatContainer.scrollHeight;
+    }
+}
+
+function addTypingIndicator(messageId) {
+    if (!document.getElementById('show-typing').checked) return;
+    const typingElement = document.createElement('div');
+    typingElement.id = `typing-${messageId}`;
+    typingElement.className = 'message-container animate__animated animate__fadeInUp animate__faster';
+    typingElement.innerHTML = `
+        <div class="flex justify-start">
+            <div class="ai-message rounded-t-2xl rounded-br-2xl py-3 px-4">
+                <div class="typing-indicator flex items-center">
+                    <span class="w-2 h-2 bg-primary dark:bg-secondary rounded-full mr-1"></span>
+                    <span class="w-2 h-2 bg-primary dark:bg-secondary rounded-full mr-1"></span>
+                    <span class="w-2 h-2 bg-primary dark:bg-secondary rounded-full"></span>
+                </div>
+            </div>
+        </div>
+    `;
+    chatContainer.appendChild(typingElement);
+
+    // Scroll to bottom
+    if (document.getElementById('auto-scroll').checked) {
+        chatContainer.scrollTop = chatContainer.scrollHeight;
+    }
+}
         
         // Add typing indicator
         function addTypingIndicator(messageId) {
