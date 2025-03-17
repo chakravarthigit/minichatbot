@@ -7,7 +7,13 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 app.use(express.json());
-app.use(cors());
+
+// ✅ Fix CORS issues
+app.use(cors({
+    origin: '*', // Allow requests from any origin
+    methods: ['GET', 'POST', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization']
+}));
 
 const OPENROUTER_API_URL = 'https://openrouter.ai/api/v1/chat/completions';
 const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
@@ -38,18 +44,18 @@ app.post('/chat', async (req, res) => {
         return res.json({ reply });
 
     } catch (error) {
-        console.error('Error:', error);
+        console.error('Error:', error.message);
         return res.status(500).json({ error: 'Failed to get response from OpenRouter' });
     }
 });
 
 const path = require('path');
 
-// Serve static files from the frontend folder
-app.use(express.static(path.join(__dirname, '../frontend')));
+// ✅ Fix path for Render deployment
+app.use(express.static(path.join(__dirname, './frontend')));
 
 app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, '../frontend', 'chatbot.html'));
+    res.sendFile(path.join(__dirname, './frontend', 'chatbot.html'));
 });
 
 app.listen(PORT, () => {
