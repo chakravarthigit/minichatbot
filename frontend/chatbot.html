@@ -633,13 +633,14 @@
         const selectedModel = document.getElementById('selected-model-display')?.textContent;
 
         // Send message to Node.js backend
-        const res = await fetch('http://localhost:5000/chat', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ message })
-        });
+        const res = await fetch('https://minichatbot.onrender.com/chat', {
+    method: 'POST',
+    headers: {
+        'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ message })
+});
+
 
         if (!res.ok) {
             throw new Error(`HTTP error! Status: ${res.status}`);
